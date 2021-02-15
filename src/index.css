@@ -1,0 +1,275 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+body{
+	background-color: black;
+	height: 100%;
+	margin:0;
+	font-family: 'Noto Sans', sans-serif;
+}
+
+.display{
+	background-image: url("../src/_img/_bg/02.jpg");
+	background-size: cover;
+	border-radius: 15px;
+	box-shadow: inset 0 0 1em #323232;
+}
+
+.change_bg{
+	float: right;
+	margin-right: 2.8vmin;
+    margin-top: 2.8vmin;
+}
+
+.user_box{
+	width: 42vmin;
+    height: 42vmin;
+	background-color: rgba(0,0,0,0.58);
+	border-radius: 10px;
+	padding: 3vmin;
+	box-sizing: border-box;
+	left: 50%;
+    top: 50%;
+	transform: translate(-50%,-50%);
+	position: absolute;
+}
+
+.user_imge{
+	width: 17vmin;
+    height: 17vmin;
+	background-image: url("../src/_img/user_img.jpg");
+	background-size: cover;
+	margin:auto;
+}
+
+h4 {
+	margin-block-start: 0em;
+    margin-block-end: 0em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+	font-weight: normal;
+}
+
+.user_name_txt{
+	font-stretch: normal;
+	font-style: normal;
+	font-size: 2.0vmin;
+	text-align: center;
+	padding: 0;
+	margin-top: 0px;
+	margin-bottom: 1vmin;
+	color: aliceblue;
+}
+
+.input_div_box{
+	background-color: none;
+	width: 23vmin;
+	margin: auto;
+	margin-top: 1.5vmin;
+}
+
+.input_box{
+	border: hidden;
+	height: 2.9vmin;
+	width: 23vmin;
+	font-size: 1.5vmin;
+	align-items: center;
+	box-sizing: inherit;
+	text-align: center;	
+	margin-right: auto;
+	margin-bottom: 1.5vmin;
+	border-radius: 5px;
+	box-shadow: inset 0 0 3px #323232;
+}
+
+.bt_bg{
+	border-radius: 100%;
+	width: 2vmin;
+	height: 2vmin;
+	border-style: groove;
+	border-color: white; 
+	text-align: center;
+	box-shadow:  0 0 1em #323232;
+	margin: 0 0.5vmin 0 0.5vmin;
+}
+
+.bt_bg:first-child,.bt_bg:last-child{
+	margin: 0 ;
+}
+
+.imge_bt{
+	margin-top: 0px;
+	float: right;
+}
+
+.imge_mini{
+	width: 2vmin;
+	height: 2vmin;
+	margin-top: 0px;
+}
+
+.imge_clone{
+	float: right;
+	margin-right: 1vh;
+	float: right;
+    margin-right: 1vh;
+    background: none;
+	border: none;
+}
+
+.left_align{
+	float: left;
+	position: absolute;
+	margin-left: 2.8vmin;
+    margin-top: 2.8vmin;
+}
+
+#imge_bt{
+	width: 2.8vmin;
+}
+
+.imge_act{
+	width: 1.6vmin;
+}
+
+.imge_projectors{
+	height: 20px;
+	margin-right: 10px;
+	padding: 0;
+}
+
+.projetors{
+	float: left;
+	background-color: white;
+}
+
+.app_container{
+	display: inline-block;
+	width: 8vmin;
+	margin-right: 2vmin;
+	margin-left: 2vmin;
+	margin-bottom: 3vmin;
+}
+
+.app_design{
+	width: 7vmin;
+    height: 7vmin;
+    border-radius: 10px;
+    background-color: transparent;
+    margin: auto;
+    border: solid 0.38vmin white;
+}
+
+.app_icon{
+	width: 60%;
+    margin: 20%;
+}
+
+.app_description{
+	color: #FFFFFF;
+	text-align: center;
+	font-size: 1.2vmin;
+	box-sizing: border-box;
+	padding: 5px;
+}
+
+.app_list{
+	margin-top: 1vmin;
+	display: inline-block;
+	position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.app_open{
+	background-color: aliceblue;
+	width: 80%;
+	border-radius: 15px;
+	margin: auto;
+	display: block;
+	box-sizing: border-box;
+	padding: 20px;
+	overflow:auto;
+	margin-bottom: 25px;
+}
+
+.table_title{
+	box-sizing: border-box;
+	padding: 1vmin;
+	font-size: 2.8vmin;
+	margin-top: 2vmin;
+	margin-top: 0.8vmin;
+/*	border-top: 1px solid #000;*/
+}
+
+.table_title:first-child{
+	margin-top: 0;
+	padding-top: 0;
+}
+
+.table_list{
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.table_row{
+	text-align: center;
+	font-size: 1.3vmin;
+	height: 3vmin;
+	border-bottom: 1px solid #000;
+	vertical-align: middle;
+}
+
+.table_header_row{
+	height: 4vmin;
+	font-size: 1.6vmin;
+	background-color: rgb(153, 177, 255);
+	border-bottom: none;
+}
+
+.table_row:hover {
+	background-color: #dfdfdf;
+}
+
+.table_colun{
+	width: 7%;
+	padding: 0.5em 0 0.5em 0;
+}
+
+.table_colun:last-child{
+	width: 9%;
+	padding: 0.5em 0 0.5em 0;
+}
+
+.table_first_colun{
+	text-align: left;
+	width: 33%;
+	padding: 0.5em 0 0.5em 0;
+}
+
+.table_second_colun{
+	text-align: center;
+	width: 18%;
+	padding: 0.5em 0 0.5em 0;
+}
+
+.minilabel{
+	font-size: 0.88vmin;
+}
+
+.material_list_input{
+	background-color: transparent;
+	border: none;
+	width: 100%;
+	height: 2vmin;
+	margin: auto;
+	text-align: center;
+	font-size: 1.3vmin;
+}
+
+.material_list_input#material_name{
+	text-align: left;
+}
+
+.table_row#input_material:hover {
+	background-color: inherit;
+}
