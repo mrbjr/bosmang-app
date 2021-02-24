@@ -1,11 +1,76 @@
 import React, {Component} from 'react'
 
-function log10(x) {return Math.LOG10E*Math.log(x)};
+function log10(x) {return Number(Math.LOG10E*Math.log(x))};
 
 const c0 = 340 // velocidade de propagação do som no ar
 const p0 = 1.29;
 const freq = [50,63,80,100,125,160,200,250,315,400,500,630,800,1000,1250,1600,2000,2500,3150,4000,5000];//21 [0~20]
 const fref = 1000;
+
+function tabajara(W,type,vaivai){
+	var C = type.slice(0,1) === "L" ? [62,62,62,62,62,62,61,60,59,58,57,54,51,48,45,42] : [33,36,39,42,45,48,51,52,53,54,55,56,56,56,56,56];
+	var R = (Number(Math.abs(W[0])) === 0) || (W[0] === Infinity) || (W[0] === null) ? 32 : 0;
+   // console.log(W)
+    //console.log(R)
+	var n = 0;
+    var k = type.slice(0,1) === "L" ? 1 : -1
+	var Lnsum=0;
+	var Lnsum2=0;
+	
+	while ((32-R>=0.1)||(R-32>0)) {
+		
+		//FUNÇÃO DELTA
+		var sW=0;
+		var D = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+		for (var i=0;i<freq.length-5;i++){
+			D[i] = (W[i+3]-C[i])*k;
+			if (D[i]>0){sW = sW + D[i]}
+		}
+		//FIM FUNÇÃO DELTA
+
+			R = sW;
+		
+		if (((32-R)>=0.1)||((R-32)>0)){
+
+			//FUNÇÃO VERIFICAR
+			if (sW<32) {n=-0.01*k};
+			if (sW>32) {n=0.01*k};
+			if (sW==32) {n=0*k};
+			//FIM FUNÇÃO VERIFICAR
+			
+			//FUNÇÃO REAJUSTE
+			for (var i=0;i<freq.length-5;i++){
+				C[i] = C[i]+n;	
+			}
+		}
+	}
+	var Nw=W[0] === (0||Infinity||null||false) ? 0 :C[7];  
+
+    ////// parte adicional
+
+	if (type.slice(0,1) === "L") {
+	for (var i=0;i<freq.length-5;i++){
+		var Lnsum = Lnsum + Math.pow(10,0.1*W[i+3]);
+	}
+	
+	for (var i=0;i<freq.length-2;i++){
+		var Lnsum2 = Lnsum2 + Math.pow(10,0.1*W[i]);
+	}
+		var Ci = 10*log10(Lnsum)-15-Nw;
+		var Ci2 = 10*log10(Lnsum2)-15-Nw;
+		if (Ci>=0){Ci = Ci+0.5} else {Ci = Ci-0.5};
+		Ci = Math.trunc(Ci);
+		if (Ci2>=0){Ci2 = Ci2+0.5} else {Ci2 = Ci2-0.5};
+		Ci2 = Math.trunc(Ci2);
+		Nw=parseInt(C[7]*10+0.5)/10;
+		console.log (type + " (Ci; Ci50-2500)= " + Nw + " (" + Ci + "; " + Ci2 + ") dB");
+    } else {
+        Nw=parseInt(C[7]*10+0.5)/10;
+        console.log (type + " (Ci; Ci50-2500)= " + Nw + " dB /// falta calcular adaptação");
+    }
+		//doChart(C,W,freq,Ci,Ci2);  */
+
+}
 
 class BosmangCore extends Component {
 
@@ -15,6 +80,9 @@ class BosmangCore extends Component {
 
             junctionsGroup: this.props.junctionsGroup,
             junctionsWalls: this.props.junctionsWalls,
+
+            prediction: {
+            },
 
             floor: {
                 material: this.props.element_floor_material, // NÃO USADO???
@@ -185,6 +253,22 @@ class BosmangCore extends Component {
             junction_4 : {
                 type: this.props.junctionsWalls[3],
             },
+            
+            junction_5 : {
+                type: this.props.junctionsWalls[0],
+            },
+            
+            junction_6 : {
+                type: this.props.junctionsWalls[1],
+            },
+            
+            junction_7 : {
+                type: this.props.junctionsWalls[2],
+            },
+            
+            junction_8 : {
+                type: this.props.junctionsWalls[3],
+            },
 
             flank_a : {}, flank_b : {}, flank_c : {}, flank_d : {},
 
@@ -203,6 +287,24 @@ class BosmangCore extends Component {
 
         this.props.updateState([name],value)
       }
+
+    verifyStats = () => {
+        if (this.state.side_a_psup.thin === 0 || this.state.side_a_psup.material.ide === 0 ||
+            this.state.side_a_pinf.thin === 0 || this.state.side_a_pinf.material.ide === 0 ||
+            this.state.side_a_padc.thin === 0 || this.state.side_a_padc.material.ide === 0 ) this.state.flank_a.kij = [undefined]
+        
+        if (this.state.side_b_psup.thin === 0 || this.state.side_b_psup.material.ide === 0 ||
+            this.state.side_b_pinf.thin === 0 || this.state.side_b_pinf.material.ide === 0 ||
+            this.state.side_b_padc.thin === 0 || this.state.side_b_padc.material.ide === 0 ) this.state.flank_b.kij = [undefined]
+
+        if (this.state.side_c_psup.thin === 0 || this.state.side_c_psup.material.ide === 0 ||
+            this.state.side_c_pinf.thin === 0 || this.state.side_c_pinf.material.ide === 0 ||
+            this.state.side_c_padc.thin === 0 || this.state.side_c_padc.material.ide === 0 ) this.state.flank_c.kij = [undefined]
+
+        if (this.state.side_d_psup.thin === 0 || this.state.side_d_psup.material.ide === 0 ||
+            this.state.side_d_pinf.thin === 0 || this.state.side_d_pinf.material.ide === 0 ||
+            this.state.side_d_padc.thin === 0 || this.state.side_d_padc.material.ide === 0 ) this.state.flank_d.kij = [undefined]
+    }
 
       elementSi = (element) => {return element.x*element.y}
       elementl1 = (element) => {return Math.max(element.x,element.y)}
@@ -297,20 +399,43 @@ class BosmangCore extends Component {
     elementntotlab = (element) => {return freq.map((freq,index)=>{return element.nint+((2*p0*c0*element.sigma[index])/(2*Math.PI*freq*element.smass))+(c0/(Math.pow(Math.PI,2)*element.Si*Math.sqrt(freq*element.fc)))*(2*(element.l1+element.l2)*element.AlphaK)})}
 
     elementEaklk = (side) => {switch (side){
+//----------------------------------------------------------------------------------------------------------------------------//
+
         case "e":
-        return this.state.junction_a.aklk[0] + this.state.junction_b.aklk[0] + this.state.junction_c.aklk[0] + this.state.junction_d.aklk[0];                                                                                              
+        return this.state.junction_a.aklk[0] + this.state.junction_b.aklk[0] + this.state.junction_c.aklk[0] + this.state.junction_d.aklk[0];
+
+//----------------------------------------------------------------------------------------------------------------------------//
                                                                 
-        case "a":
+        case "a_psup":
         return 2*this.state.junction_a.aklk[1] + this.state.junction_1.aklk[1] + this.state.junction_4.aklk[1];                                                                                                 
                                                                 
-        case "b":
-            return 2*this.state.junction_b.aklk[1] + this.state.junction_1.aklk[1] + this.state.junction_2.aklk[1];                                                                                 
+        case "b_psup":
+        return 2*this.state.junction_b.aklk[1] + this.state.junction_1.aklk[1] + this.state.junction_2.aklk[1];                                                                                 
                                                         
-        case "c":  
+        case "c_psup":  
         return 2*this.state.junction_c.aklk[1] + this.state.junction_2.aklk[1] + this.state.junction_3.aklk[1];                                       	                                    
                                                         
-        case "d":   
-        return 2*this.state.junction_d.aklk[1] + this.state.junction_3.aklk[1] + this.state.junction_4.aklk[1];													
+        case "d_psup":   
+        return 2*this.state.junction_d.aklk[1] + this.state.junction_3.aklk[1] + this.state.junction_4.aklk[1];	
+
+//----------------------------------------------------------------------------------------------------------------------------//
+
+        case "a_pinf":
+        return 2*this.state.junction_a.aklk[1] + this.state.junction_5.aklk[1] + this.state.junction_8.aklk[1];                                                                                                 
+                                                                
+        case "b_pinf":
+        return 2*this.state.junction_b.aklk[1] + this.state.junction_5.aklk[1] + this.state.junction_6.aklk[1];                                                                                 
+                                                        
+        case "c_pinf":  
+        return 2*this.state.junction_c.aklk[1] + this.state.junction_6.aklk[1] + this.state.junction_7.aklk[1];                                       	                                    
+                                                        
+        case "d_pinf":   
+        return 2*this.state.junction_d.aklk[1] + this.state.junction_7.aklk[1] + this.state.junction_8.aklk[1];
+
+ //----------------------------------------------------------------------------------------------------------------------------//       
+        default:
+        return console.log("elementEaklk error side: " + side)
+
         }
     }
 
@@ -525,7 +650,7 @@ class BosmangCore extends Component {
         })
     }
 
-    doCalcPartOneHalf = () => {
+    doCalcPartOneHalfSup = () => {
         //pode adaptar para pinf e padc
         var sides = [1,2,3,4]
         var letter = ['a','b','c','d']
@@ -546,7 +671,28 @@ class BosmangCore extends Component {
 
     }
 
-    doCalcPartTwoHalf = () => {
+    doCalcPartOneHalfInf = () => {
+        //pode adaptar para pinf e padc
+        var sides = [5,6,7,8]
+        var letter = ['a','b','c','d']
+        var parts = ['pinf']//,'pinf','padc']
+        var side_root = ''
+        //var side_x_part = ''
+        var junction_x = ''
+
+        sides.map((e,index)=>{
+            junction_x = "junction_" + e
+            var n = 0
+            if (index < letter.length-1) {n = index+1} else {n = index-3}
+            this.state[junction_x]['psup'] = this.state['side_' + letter[n] + "_pinf"]
+            this.state[junction_x]['pinf'] = this.state['side_' + letter[n] + "_pinf"]
+            this.state[junction_x]['padc'] = this.state['side_' + letter[index] + "_pinf"]
+
+        })
+
+    }
+
+    doCalcPartTwoHalfSup = () => {
         //pode adaptar para pinf e padc
         var sides = [1,2,3,4]
         var letter = ['a','b','c','d']
@@ -572,7 +718,57 @@ class BosmangCore extends Component {
 
     }
 
-    doCalcPartThree = () =>{
+    doCalcPartTwoHalfInf = () => {
+        //pode adaptar para pinf e padc
+        var sides = [5,6,7,8]
+        var letter = ['a','b','c','d']
+        var parts = ['pinf']//,'pinf','padc']
+        var side_root = ''
+        //var side_x_part = ''
+        var junction_x = ''
+        var {floor} = this.state
+        var sidetxt = ''
+
+        sides.map((e,index)=>{
+            junction_x = "junction_" + e
+            sidetxt = "side_" + letter[index] + "_pinf"
+
+
+            this.state[junction_x].rmass = this.junctionrmass(this.state[sidetxt],this.state[junction_x])
+            this.state[junction_x].kij = this.junctionkij(this.state[junction_x])
+            this.state[junction_x].alphak = this.junctionalphak(this.state[sidetxt],this.state[junction_x])
+            this.state[junction_x].lengthk = this.junctionlengthk(this.state[sidetxt],this.state[junction_x],'n')
+            this.state[junction_x].aklk = this.junctionaklk(this.state[junction_x])
+
+        })
+
+    }
+
+    doCalcPartThree = () => {
+        var sides = ['a','b','c','d']
+        var parts = ['psup','pinf']//,'padc']
+        var side_root = ''
+        var side_x_part = ''
+        var junction_x = ''
+        var {floor} = this.state
+
+        sides.map(e =>{
+            side_root = 'side_' + e + '_'
+            junction_x = 'junction_' + e
+                parts.map(p => {
+                    side_x_part = side_root + p
+
+                    this.state[side_x_part].Eaklk = this.elementEaklk(e + "_" + p)
+                    this.state[side_x_part].ntotsitu = this.elementntotsitu(this.state[side_x_part])
+                    this.state[side_x_part].Rsitu = this.elementR(this.state[side_x_part],this.state[side_x_part].ntotsitu)
+                    this.state[side_x_part].Tssitu = this.elementTs(this.state[side_x_part].ntotsitu)
+                    this.state[side_x_part].Aisitu = this.elementAi(this.state[side_x_part],this.state[side_x_part].Tssitu)                 
+
+                })
+        })
+    }
+
+    doCalcPartFour = () =>{
         var sides = ['a','b','c','d']
         var flank_x = ''
         var junction_x = ''
@@ -585,16 +781,19 @@ class BosmangCore extends Component {
                     this.state[flank_x].type = this.state[junction_x].type
                     this.state[flank_x].kij = this.state[junction_x].kij
                     this.state[flank_x].lij = this.state[junction_x].lengthk
-                    this.state[flank_x].Ai = floor.Aisitu
-                    this.state[flank_x].Aj = this.state[junction_x]['psup']['Aisitu']
+                    this.state[flank_x].Afloor = floor.Aisitu
+                    this.state[flank_x].Apsup = this.state[junction_x]['psup']['Aisitu']
+                    this.state[flank_x].Apinf = this.state[junction_x]['pinf']['Aisitu']
 
                     this.state[flank_x].Lsitu = floor.Lsitu
                     //this.state[flank_x].Ls = floor.Ls
-                    this.state[flank_x].Ri = floor.Rsitu
+                    this.state[flank_x].Rfloor = floor.Rsitu
                     //this.state[flank_x].Ri = floor.Rs
-                    this.state[flank_x].Rj = this.state[junction_x]['psup']['Rsitu']
-                    this.state[flank_x].Si = floor.Si
-                    this.state[flank_x].Sj = this.state[junction_x]['psup']['Si']
+                    this.state[flank_x].Rpsup = this.state[junction_x]['psup']['Rsitu']
+                    this.state[flank_x].Rpinf = this.state[junction_x]['pinf']['Rsitu']
+                    this.state[flank_x].Sfloor = floor.Si
+                    this.state[flank_x].Spsup = this.state[junction_x]['psup']['Si']
+                    this.state[flank_x].Spinf = this.state[junction_x]['pinf']['Si']
                     this.state[flank_x].dLsitu = this.state.float.d
 
             
@@ -604,10 +803,61 @@ class BosmangCore extends Component {
     flankDvsitu = (flank) => {
         var kij = flank.kij
         var lij = flank.lij
-        var Ai = flank.Ai
-        var Aj = flank.Aj
+        var Afloor = flank.Afloor
+        var Apsup = flank.Apsup
+        var Apinf = flank.Apinf
+        var Ai = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+        var Aj = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-        return freq.map((freq,index) => { return kij.map(kij => {return Math.max(0,kij-(10*log10(lij/Math.sqrt(Ai[index]*Aj[index]))))})}) // EQ 7
+        return freq.map((freq,index) => { return kij.map((kij,idx) => {
+            switch (idx) {
+                case 0:
+                    if (flank.type === "T") {
+                        Ai = Apsup
+                        Aj = Afloor
+                    }
+                    if (flank.type === "X") {
+                        Ai = Afloor
+                        Aj = Apinf
+                    }           
+                    break;
+
+                case 1:
+                    if (flank.type === "T") {
+                        Ai = Apsup
+                        Aj = Apinf
+                    }
+                    if (flank.type === "X") {
+                        Ai = Afloor
+                        Aj = Afloor // Apadc mas n usa esse aqui então tá de boas
+                    }
+                    break;
+
+                case 2:
+                    if (flank.type === "T") {
+                        Ai = Afloor
+                        Aj = Apinf
+                    }
+                    if (flank.type === "X") {
+                        Ai = Apsup
+                        Aj = Apinf
+                    }
+                    break;
+
+                case 3:
+                    if (flank.type === "X") {
+                        Ai = Apsup
+                        Aj = Afloor
+                    }
+                    break;
+            
+                default:
+                    Ai = Afloor
+                    Aj = Apinf
+                    break;
+            }
+            return Math.max(0,kij-10*log10(lij/Math.sqrt(Ai[index]*Aj[index])))       // EQ 7
+        })}) 
     }
 
     flankLnd = (flank) => {
@@ -634,35 +884,208 @@ class BosmangCore extends Component {
     flankLnij = (flank) => {
         var Lsitu = flank.Lsitu   //
         var dLsitu = flank.dLsitu   //
-        var Ri = flank.Ri           //
-        var Rj = flank.Rj           //
-        var Si = flank.Si           //
-        var Sj = flank.Sj           //
+        var Ri = flank.Rfloor          //
+        var Rj = flank.Rpinf           //
+        var Si = flank.Sfloor          //
+        var Sj = flank.Spinf           //
         var Dvsitu = flank.Dvsitu   // 
-        var dRsitu = [0]            // ΔRj,situ
+        var dRjsitu = [0]            // ΔRj,situ
 
         return Dvsitu.map((Dv,index) => {
-            return Dv.map(Dij => {
-                return Lsitu[index] - dLsitu[index] + ((Ri[index]-Rj[index])/2) - dRsitu[0] - Dij - (10*log10(Math.sqrt(Si/Sj))) //EQ 12 (PARTE 2)
+            return Dv.map((Dij,idx) => {
+                return Lsitu[index] - dLsitu[index] + ((Ri[index]-Rj[index])/2) - dRjsitu[0] - Dij - (10*log10(Math.sqrt(Si/Sj))) //EQ 12 (PARTE 2)
+            })
+        })
+
+    }
+ 
+    flankRij = (flank) => {
+        var Rfloor = flank.Rfloor
+        var Rpsup = flank.Rpsup
+        var Rpinf = flank.Rpinf
+        var Sfloor = flank.Sfloor
+        var Spsup = flank.Spsup
+        var Spinf = flank.Spinf
+        var Ss = flank.Sfloor       // 10 para diagonal criar condicional, mas antes entender o q é né camarada
+        var Ri = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]          //
+        var Rj = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]          //
+        var Si = 0           //
+        var Sj = 0           //
+        var Dvsitu = flank.Dvsitu   // 
+       // var dRisitu = [0]            // ΔRi,situ
+        var dRjsitu = [0]            // ΔRi,situ            
+        var dRisitu = ''
+
+        return Dvsitu.map((Dv,index) => {
+            return Dv.map((Dij,idx) => {
+                                            
+                switch (idx) {
+                    case 0: // da pra aprimorar com psup, pinf e padc
+                        if (flank.type === "T") {
+                            dRisitu = 0
+                            Ri = Rpsup
+                            Rj = Rfloor
+                            Si = Spsup
+                            Sj = Sfloor
+                        } else
+                        if (flank.type === "X") {
+                            dRisitu = 0
+                            Ri = Rfloor
+                            Rj = Rpinf
+                            Si = Sfloor
+                            Sj = Spinf
+                        } else {dRisitu = 10000000000}
+                        break;
+
+                    case 1:
+                        if (flank.type === "T") {
+                            dRisitu = 0
+                            Ri = Rpsup
+                            Rj = Rpinf
+                            Si = Spsup
+                            Sj = Spinf
+                        } else
+                        if (flank.type === "X") {
+                            dRisitu = flank.dLsitu[index]
+                            Ri = Rfloor
+                            Rj = Rfloor
+                            Si = Sfloor
+                            Sj = Sfloor /// no J na vdd é padc mas n usa esse aqui (por enquanto...)
+                        } else {dRisitu = 10000000000}
+                        break;
+
+                    case 2:
+                        if (flank.type === "T") {
+                            dRisitu = flank.dLsitu[index]
+                            Ri = Rfloor
+                            Rj = Rpinf
+                            Si = Sfloor
+                            Sj = Spinf
+                        } else
+                        if (flank.type === "X") {
+                            dRisitu = 0
+                            Ri = Rpsup
+                            Rj = Rpinf
+                            Si = Spsup
+                            Sj = Spinf
+                        } else {dRisitu = 10000000000}
+                        break;
+
+                    case 3:
+                        if (flank.type === "X") {
+                            dRisitu = flank.dLsitu[index]
+                            Ri = Rpsup
+                            Rj = Rfloor
+                            Si = Spsup
+                            Sj = Sfloor
+                        } else {dRisitu = 10000000000}
+                        break;
+                
+                    default:
+                        break;
+                }
+
+                return (Ri[index]/2) + (Rj[index]/2) + dRisitu + dRjsitu[0] + Dij + (10*log10(Ss/Math.sqrt(Si*Sj))) //EQ 15 (PARTE 1)
             })
         })
 
     }
 
-    flankRij = (flank) => {
-        var Ri = flank.Ri           //
-        var Rj = flank.Rj           //
-        var Si = flank.Si           //
-        var Sj = flank.Sj           //
-        var Dvsitu = flank.Dvsitu   // 
-        var dRisitu = [0]            // ΔRi,situ
-        var dRjsitu = [0]            // ΔRi,situ
-        var Ss = Si                 // 10 para diagonal criar condicional, mas antes entender o q é né camarada
+    predictionL = () => {
+        var fe = this.state.flank_floor_floor.Lnd
 
-        return Dvsitu.map((Dv,index) => {
-            return Dv.map(Dij => {
-                return ((Ri[index]+Rj[index])/2) + dRisitu[0] + dRjsitu[0] + Dij + (10*log10(Ss/Math.sqrt(Si*Sj))) //EQ 15 (PARTE 1)
+        //CONDICIONAL PARA X E T
+        var fa = this.state.flank_a.Lnijsitu.map((flank) => {return flank.filter((ff,i) => {if (this.state.flank_a.type === "L") {return i === 2} else {return i === 0}})})
+        var fb = this.state.flank_b.Lnijsitu.map((flank) => {return flank.filter((ff,i) => {if (this.state.flank_b.type === "L") {return i === 2} else {return i === 0}})})
+        var fc = this.state.flank_c.Lnijsitu.map((flank) => {return flank.filter((ff,i) => {if (this.state.flank_c.type === "L") {return i === 2} else {return i === 0}})})
+        var fd = this.state.flank_d.Lnijsitu.map((flank) => {return flank.filter((ff,i) => {if (this.state.flank_d.type === "L") {return i === 2} else {return i === 0}})})
+        var tau = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+        fe.map((nn,index) => {
+            tau[index] += Math.pow(10,nn/10)
+        }) 
+
+        fa.map((nn,index) => {
+            tau[index] += Math.pow(10,nn/10)
+        })
+
+        fb.map((nn,index) => {
+            tau[index] += Math.pow(10,nn/10)
+        })
+
+        fc.map((nn,index) => {
+            tau[index] += Math.pow(10,nn/10)
+        })
+
+        fd.map((nn,index) => {
+            tau[index] += Math.pow(10,nn/10)
+        })
+
+
+        //if (this.state.flank_floor_floor.kij === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_a.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_b.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_c.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_d.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+
+        return tau.map((nn,index) =>{
+            return 10*log10(nn)
+        })
+    }
+
+    predictionLnt = (L) => {
+        return L.map((L,index) => {return L - 10*log10(0.032*this.props.x*this.props.y*this.props.z2)})
+    }
+
+    predictionR = () => {
+        var fe = this.state.flank_floor_floor.Rd
+        //// ADICIONAR CONDICIONAL PARA X, T E L
+        var fa = this.state.flank_a.Rijsitu.map((flank) => {return flank.filter ((ff,i) => {if (this.state.flank_a.type === "X") {return i !== 1} else {return ff}})})
+        var fb = this.state.flank_b.Rijsitu.map((flank) => {return flank.filter ((ff,i) => {if (this.state.flank_b.type === "X") {return i !== 1} else {return ff}})})
+        var fc = this.state.flank_c.Rijsitu.map((flank) => {return flank.filter ((ff,i) => {if (this.state.flank_c.type === "X") {return i !== 1} else {return ff}})})
+        var fd = this.state.flank_d.Rijsitu.map((flank) => {return flank.filter ((ff,i) => {if (this.state.flank_d.type === "X") {return i !== 1} else {return ff}})})
+        var tau = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+
+        fe.map((nn,index) => {
+            tau[index] += Math.pow(10,-nn/10)
+        }) 
+
+        fa.map((nn,index) => {
+            
+            nn.map(ij => {
+                tau[index] += Math.pow(10,-ij/10)
             })
+        })
+
+        fb.map((nn,index) => {
+            
+            nn.map(ij => {
+                tau[index] += Math.pow(10,-ij/10)
+            })
+        })
+
+        fc.map((nn,index) => {
+            
+            nn.map(ij => {
+                tau[index] += Math.pow(10,-ij/10)   
+            })
+        })
+
+        fd.map((nn,index) => {
+            
+            nn.map(ij => {
+                tau[index] += Math.pow(10,-ij/10)
+            })
+        })
+
+        //if (this.state.flank_floor_floor.kij === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_a.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_b.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_c.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        if (this.state.flank_d.kij[0] === undefined) {tau = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}
+        
+        return tau.map((nn,index) =>{
+            return -10*log10(nn)
         })
 
     }
@@ -671,7 +1094,7 @@ class BosmangCore extends Component {
 
         const {            
 
-            junctionsWalls,
+            prediction,
 
             floor, float,
             side_a_psup, side_a_pinf, side_a_padc,
@@ -681,6 +1104,7 @@ class BosmangCore extends Component {
 
             junction_a, junction_b, junction_c, junction_d,
             junction_1, junction_2, junction_3, junction_4,
+            junction_5, junction_6, junction_7, junction_8,
 
             flank_a, flank_b, flank_c, flank_d, flank_floor_floor,
         
@@ -710,10 +1134,12 @@ class BosmangCore extends Component {
         float.fc = this.floatfc(float)
         float.d = this.floatd(float)
 
-        this.doCalcPartOne()
-        this.doCalcPartOneHalf()
-        this.doCalcPartTwo()
-        this.doCalcPartTwoHalf()
+        this.doCalcPartOne()        //--------------
+        this.doCalcPartOneHalfSup() // coleta dados da junção
+        this.doCalcPartOneHalfInf() //--------------
+        this.doCalcPartTwo()        //________________
+        this.doCalcPartTwoHalfSup() // calcula dados da junção
+        this.doCalcPartTwoHalfInf() //________________
 
         ////////////////////////
 
@@ -726,31 +1152,11 @@ class BosmangCore extends Component {
         floor.Rs = this.elementRs(floor)
         floor.Ls = this.elementLs(floor)
 
-        side_a_psup.Eaklk = this.elementEaklk('a')
-        side_a_psup.ntotsitu = this.elementntotsitu(side_a_psup)
-        side_a_psup.Rsitu = this.elementR(side_a_psup,side_a_psup.ntotsitu)
-        side_a_psup.Tssitu = this.elementTs(side_a_psup.ntotsitu)
-        side_a_psup.Aisitu = this.elementAi(side_a_psup,side_a_psup.Tssitu)
+        //// calc three com todos os sides e p's
 
-        side_b_psup.Eaklk = this.elementEaklk('b')
-        side_b_psup.ntotsitu = this.elementntotsitu(side_b_psup)
-        side_b_psup.Rsitu = this.elementR(side_b_psup,side_b_psup.ntotsitu)
-        side_b_psup.Tssitu = this.elementTs(side_b_psup.ntotsitu)
-        side_b_psup.Aisitu = this.elementAi(side_b_psup,side_b_psup.Tssitu)
+        this.doCalcPartThree() /// 
 
-        side_c_psup.Eaklk = this.elementEaklk('c')
-        side_c_psup.ntotsitu = this.elementntotsitu(side_c_psup)
-        side_c_psup.Rsitu = this.elementR(side_c_psup,side_c_psup.ntotsitu)
-        side_c_psup.Tssitu = this.elementTs(side_c_psup.ntotsitu)
-        side_c_psup.Aisitu = this.elementAi(side_c_psup,side_c_psup.Tssitu)
-
-        side_d_psup.Eaklk = this.elementEaklk('d')
-        side_d_psup.ntotsitu = this.elementntotsitu(side_d_psup)
-        side_d_psup.Rsitu = this.elementR(side_d_psup,side_d_psup.ntotsitu)
-        side_d_psup.Tssitu = this.elementTs(side_d_psup.ntotsitu)
-        side_d_psup.Aisitu = this.elementAi(side_d_psup,side_d_psup.Tssitu)
-
-        this.doCalcPartThree()
+        this.doCalcPartFour() //// 
 
         flank_floor_floor.Lsitu = this.state.floor.Lsitu
         flank_floor_floor.Rsitu = this.state.floor.Rsitu
@@ -764,16 +1170,26 @@ class BosmangCore extends Component {
 
         flank_b.Dvsitu = this.flankDvsitu(flank_b)
         flank_b.Lnijsitu = this.flankLnij(flank_b)
+        flank_b.Rijsitu = this.flankRij(flank_b)
 
         flank_c.Dvsitu = this.flankDvsitu(flank_c)
         flank_c.Lnijsitu = this.flankLnij(flank_c)
+        flank_c.Rijsitu = this.flankRij(flank_c)
 
         flank_d.Dvsitu = this.flankDvsitu(flank_d)
         flank_d.Lnijsitu = this.flankLnij(flank_d)
+        flank_d.Rijsitu = this.flankRij(flank_d)
 
-        
+        this.verifyStats()
 
-        const string = JSON.stringify({junction_a})
+        prediction.R = this.predictionR()
+        prediction.L = this.predictionL()
+        prediction.LnT = this.predictionLnt(prediction.L)
+        tabajara(prediction.R,"R'w")
+        tabajara(prediction.L,"Ln,w")
+        tabajara(prediction.LnT,"LnT,w")
+
+        const string = JSON.stringify({prediction})
 
         return (
             <div>

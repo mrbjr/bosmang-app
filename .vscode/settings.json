@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/a29f1bd9-7822-40ff-a598-8372d73368ca/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/bosmang-app",
+    "appService.deploySubpath": "."
+}
